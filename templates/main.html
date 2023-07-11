@@ -1,0 +1,25 @@
+<html>
+    <head>
+        <title> Projet de l'équipe 7 </title>
+        <link rel="stylesheet" href="../static/main.css">
+    </head>
+    <body>
+        <div id="div1">
+            <h1>Bienvenue sur le site</h1>
+            <center><p> Ce site est un projet universitaire dont le but est la création, la modification et la visualisation 
+                d'exercices par les utilisateurs. Tout cela étant géré avec un principe de compte utilisateur. Les options
+                de modifications ne sont disponibles que pour le créateur de l'exercice. Un système de tri par étiquette est également 
+                présent et fonctionnel.
+            </p></center>
+        </div>
+        <div id="div2">
+            <form action="/logProf">
+                <label>Connexion:</label><br>
+                <input type="submit" name="login" value="professeur" id="log"> </input>
+            </form>
+            <form action="/logEtu">
+                <input type="submit" name="login" value="étudiant" id="log"> </input>
+            </form>
+        </div>
+    </body>
+</html>

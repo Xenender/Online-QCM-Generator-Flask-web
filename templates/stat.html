@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>  
+<head>
+    <title>stat</title>
+    <link rel="stylesheet" href="../static/stat.css">
+    
+
+</head>
+<body>
+    <h1>statistiques</h1>
+    <center><h3>tapez un numéro étudiant pour voir ses statistiques</h3></center>
+
+    <div id="num">
+        <center>
+        <form action="/stat" method="post">
+            <input type="text" name="numEtu" id="numEtu">
+            <br>
+            <input type="submit" class="CreerTrier">
+        </form>
+        </center>
+    </div>
+
+        
+    
+    {%if erreur=="true"%}
+        <center><h3>le numéro d'étudiant n'existe pas</h3></center>
+    {%endif%}
+
+
+    <div id="div2">
+        <h3 style="text-align: center;">résultats de l'étudiant:</h3>
+        <center>
+        <ul id="result">
+
+            {% for element in tab %}   <!-- pour chaques stat de l'etu -->  
+
+                    
+                <!--  on affiche stats de tout les exercices  -->
+                {% if element[4]=="faux" %}  
+                <li><p>{{ element[1] }} :</p> <p id="f">{{element[4]}}</p></li>
+
+                {%else%}
+                <li><p>{{ element[1] }} :</p> <p id="v">{{element[4]}}</p></li>
+
+                {%endif%}
+                        
+            {%endfor%}
+
+        </ul>
+    </center>
+    </div>
+    <center><form action="/hub" >
+        <input type="submit" value="retour" class="CreerTrier">
+    </form>
+    </center>
+
+
+</body>
+</html>

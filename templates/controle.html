@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>controle</title>
+    <link rel="stylesheet" href="../static/controle.css">
+    <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+
+    
+
+
+
+
+
+
+
+    <script>
+            var indiceTag = 0;
+            var nbTag =0;
+
+
+            var indiceBorneInf=0;
+            var indiceBorneSup=0;
+
+
+            tableauTags = [];
+
+            window.addEventListener('load', (event) => {
+
+            //récupération des étiquettes enregistrées dans la variable "tableauTags"
+            "{%for e in tabEti%}"
+            tableauTags.push("{{e[0]}}");
+            console.log(tableauTags);
+            
+            "{%endfor%}"
+            plusTag();
+            //on ajoute un champ d'étiquette
+            
+
+
+
+            });
+            function removeTag(obj){//suppression d'un champ étiquette
+            if(nbTag>1){//on ne peut pas supprimer la dernière
+                let classe = $(obj).attr('class')
+                $("."+classe+"t").remove();
+                nbTag = nbTag - 1;
+                }
+            }
+
+            function changeTag(id,classe,value){
+
+          
+                const elements = document.querySelectorAll("."+classe); //cela représente le select ainsi que les deux bornes
+
+                elements.forEach(el => {//les deux bornes prennent en name la nouvelle valeur (le select aussi c'est pour ça qu'on va le re changer apres)
+                el.name = value;
+
+                });
+                $("#"+id).attr('name',"tag");
+
+                }
+
+
+            function plusTag(){//ajout d'un champ étiquette au dom sous la bonne forme et avec les id, class qui conviennent au bon fonctionnement du code
+
+                let debut = '<div class="'+indiceTag+'t"><select id="letag'+indiceTag+'" name="tag" class="tag'+indiceTag+'" onChange="changeTag(this.id,this.className,this.value)">';
+                let fin = '</select><img src="https://cdn-icons-png.flaticon.com/512/484/484611.png" class="'+indiceTag+'" onclick="removeTag(this);" style="width: 20px;height: 20px;"></div>';
+                for(let j = 0;j<tableauTags.length;j++){
+                    debut = debut + '<option value='+tableauTags[j]+'>'+tableauTags[j]+'</option>';
+                    
+                }
+
+                debut = debut + '<label>Min:</label><input type="number" required min="0" step="1" name="'+tableauTags[0]+'" class="tag'+indiceTag+'"><label>Max:</label><input type="number" required min="0" step="1" name="'+tableauTags[0]+'" class="tag'+indiceTag+'">'
+
+                // let curseurs ='<label>Min:</label><input type="range" min="0" max="10" step="1"oninput="indiceBorneInf = this.value;numMin.value = this.value"><output id="numMin">0</output><label>Max:</label><input type="range" min="0" max="10" step="1"oninput="numMax.value = this.value"><output id="numMax">0</output>';
+                let html = debut + fin;
+                $("#div2").append(html);
+                indiceTag = indiceTag + 1;
+                nbTag = nbTag + 1;
+
+            }
+
+            function affichage(){
+                console.log("Borne inferieure: "+indiceBorneInf);
+                console.log("Borne superieure: "+indiceBorneSup);
+            }
+
+    </script>
+</head>
+<body>
+    <h1>pagre de createRoomtion des controleq</h1>
+    <div id="div1">
+        <form action="/creeControle" method="post">
+            <label>Nombre de questions:</label><br>
+            <input type="number" step="1" min="1" required name="nbrQuestions" class="input"><br>
+            <label>Nombre de sujets:</label><br>
+            <input type="number" step="1" min="1" required name="nbrSujets" class="input">
+            
+            <label>Questions entrelacées:</label><input type="checkbox" id="entrelace"  name="entrelace"><br>
+            <label>Examen anonyme:</label><input type="checkbox" name="anonyme"><br>
+
+            <div id="div2">
+                <h3>Bornes pour le nombre de questions:</h3>
+                <!-- {%for eti in tabEti%}
+                    <p>{{eti[0]}}:</p><label>Min:</label><input type="number" min="0"  step="1" name="min{{eti[0]}}"><label>Max:</label><input type="number" min="0"  step="1" name="max{{eti[0]}}">
+
+                {%endfor%} -->
+                
+                
+            </div>
+            <input type="button" onclick="plusTag()" value="Nouvelle étiquette" class="bouton">
+            <input type="submit" value="Créer" class="CreerTrier" style="width: 100%;margin: 8px 0;">
+        </form>
+    </div>
+
+    <center>
+        <form action="/hub" >
+            <input type="submit" value="Retour" class="CreerTrier">
+        </form>
+    </center>
+        
+    {%if compatible1==0%}
+        <h3 style="text-align: center;">La demande est insatisfiable, verifiez vos paramètres</h3>
+    {%endif%}
+
+    </div>
+  
+
+
+
+</body>
+</html>

@@ -1,0 +1,321 @@
+<html>
+<head>
+
+<script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
+
+
+<!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mermaid/7.0.11/mermaid.css"> -->
+<script src="https://unpkg.com/mermaid@7.1.0/dist/mermaid.min.js"></script>
+<style>
+    #TitrePage {
+    text-align: center;
+    border: none;
+    border-radius: 12px;
+    background-color: #45a049;
+}
+#preview{
+    background-color: #eaeaea;
+    border-radius: 12px;
+}
+.ChampsEtiquette{
+    border-radius: 5px;
+    background-color: #d1d1d1;
+    padding: 20px;
+    max-width: 100%;
+    text-align: center;
+}
+.bouton{
+    background-color: #45a049;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    padding: 14px 20px;
+    cursor: pointer;
+}
+</style>
+<script>
+    var config = {
+        startOnLoad:false,
+        theme: 'forest',
+        flowchart:{
+                useMaxWidth:false,
+                htmlLabels:true
+            }
+    };
+    mermaid.initialize(config); //initialisation de mermaid pour transformer les balises <pre class=mermaid> en graphe
+    //mermaid.init(undefined, document.querySelectorAll('.language-mermaid'));
+    </script>
+
+
+
+<script>
+    //code pour mermaid, non fonctionnel
+
+    // let insert = function (code) {
+    // output.innerHTML = code;
+    // };
+
+    // function renderMermaid(){
+    //     //mermaid.init = true; //WORKING
+    //     //("preparedScheme", "graph TD;A --> B;A --> C;", insert);
+    //     //mermaid.init(undefined, document.querySelectorAll('.language-mermaid'));
+        
+    // }
+
+    //initialisation variables
+    
+    var indiceCheckBox = 0;
+    var nbReponses = 0;
+
+    var indiceTag = 0;
+    var nbTag =0;
+
+    tableauTags = [];
+
+    window.addEventListener('load', (event) => {
+
+        //récupération des étiquettes enregistrées dans la variable "tableauTags"
+        "{%for e in tabEti%}"
+        tableauTags.push("{{e[0]}}");
+        "{%endfor%}"
+
+        //on ajoute un champ de réponse et un champ d'étiquette
+        plusRep();
+        plusTag();
+
+        
+
+     });
+
+    function plusRep(){//cette fonction ajoute au dom un champ de réponse supplémentaire avec les id et class nécéssaire au fonctionnement du code
+
+        $("#ans").append('<div class="'+indiceCheckBox+'"><input type="hidden" name="checkboxvalue" id="checkboxvalue'+indiceCheckBox+'" value="off"><input type="checkbox" name="checkbox" id="checkbox'+indiceCheckBox+'" onclick="changeCheck(this.id,'+indiceCheckBox+');" value="off" style="display: inline-block"><textarea name="answer" style="width: 500px;height: 80px; display: inline-block;resize : none;" placeholder="réponse" required></textarea><img src="https://cdn-icons-png.flaticon.com/512/484/484611.png" class="'+indiceCheckBox+'" onclick="removeAnswer(this);" style="width: 30px;height: 30px;"></div>');
+        indiceCheckBox = indiceCheckBox + 1;//indice unique +1
+        nbReponses = nbReponses + 1;//nombre de champs réponse à l'écran
+    }
+    
+    function plusRepNum(){//
+
+        $("#ans").append('<input type="hidden" name="checkboxvalue" id="checkboxvalue1" value="on"><input type="number" name="answer" id=answer onchange="limitNum()" step=".01">');
+        
+    }
+    function plusRepStr(){//cette fonction ajoute au dom un champ de réponse supplémentaire avec les id et class nécéssaire au fonctionnement du code
+
+        $("#ans").append('<input type="hidden" name="checkboxvalue" id="checkboxvalue1" value="on"><input type="text" name="answer">');
+        
+    }
+
+
+   
+
+    function limitNum(){
+        let obj = document.getElementById("answer");
+        obj.value = parseFloat(obj.value).toFixed(2);
+    
+    }
+    
+    
+    function changeCheck(id,nbid){
+        idValueInt = nbid//des qu'une checkbox change d'état cette fonction est appelée pour mettre à jours la valeur du <input type=hidden> correspondant : cela facilite la récupération coté serveur.
+        idValue = "checkboxvalue"+idValueInt;
+
+        let checkbox = document.getElementById(id);
+        let cbValue = document.getElementById(idValue)
+        if(checkbox.checked){ //checked apres avoir clické
+            cbValue.setAttribute('value', 'on');
+        }
+        else if(!checkbox.checked){
+            cbValue.setAttribute('value', 'off');
+        }
+       
+    }
+    function removeAnswer(obj){//suppression d'un champ réponse
+        
+        if(nbReponses>1){//on ne peut pas supprimer la dernière
+            let classe = $(obj).attr('class')
+            $("."+classe).remove();
+            nbReponses = nbReponses - 1;
+        }
+    }
+    function removeTag(obj){//suppression d'un champ étiquette
+
+        
+        if(nbTag>1){//on ne peut pas supprimer la dernière
+            let classe = $(obj).attr('class')
+            $("."+classe+"t").remove();
+            nbTag = nbTag - 1;
+        }
+        
+    }
+    function plusTag(){//ajout d'un champ étiquette au dom sous la bonne forme et avec les id, class qui conviennent au bon fonctionnement du code
+        
+        let debut = '<div class="'+indiceTag+'t"><select name="tag" id="tag">';
+            let fin = '</select><img src="https://cdn-icons-png.flaticon.com/512/484/484611.png" class="'+indiceTag+'" onclick="removeTag(this);" style="width: 20px;height: 20px;"></div>';
+            for(let j = 0;j<tableauTags.length;j++){
+                debut = debut + '<option value='+tableauTags[j]+'>'+tableauTags[j]+'</option>';
+            }
+        let html = debut + fin;
+        $("#divTag").append(html);
+        indiceTag = indiceTag + 1;
+        nbTag = nbTag + 1;
+    }
+
+    function genereTag(){//actualise les champs <option> des <select> qui représentent les étiquettes : cela se produit dans le cas ou l'on créé une nouvelle étiquette
+        //supprimer les anciens tags
+        $("#divTag").empty();
+        //les recreer avec le nouveau tag
+        
+        for(let i = 0; i <nbTag;i++){
+            let debut = '<div class="'+indiceTag+'t"><select name="tag" id="tag">';
+            let fin = '</select><img src="https://cdn-icons-png.flaticon.com/512/484/484611.png" class="'+indiceTag+'" onclick="removeTag(this);" style="width: 20px;height: 20px;"></div>';
+            for(let j = 0;j<tableauTags.length;j++){
+                debut = debut + '<option value='+tableauTags[j]+'>'+tableauTags[j]+'</option>';
+            }
+            let html = debut + fin;
+            $("#divTag").append(html);
+            indiceTag = indiceTag + 1;
+            
+        }
+    }
+    function newTag(){//création d'une nouvelle étiquette, celle-ci ne sera ajoutée au fichier csv seulement si l'exercice est enregistré
+        let tag = $("#createTag").val();
+        $("#createTag").val("");
+        tableauTags.push(tag);
+        genereTag(); //recréé les options des selects de tags
+        
+    }
+
+
+    var mermaid = false;
+    function prev(){
+
+        var key = window.event.keyCode;
+
+        //if (key === 13) {
+
+            $("#preview").empty();
+            
+                console.log("2");
+                let mk = (marked.parse($("#question").val()));
+                $("#preview").append(mk);
+                
+                document.querySelectorAll("pre.mermaid, pre>code.language-mermaid").forEach($el => {//pour traiter le cas mermaid : transforme les balises <code langage-mermaid> en <pre class="mermaid">
+                
+                if ($el.tagName === "CODE")
+                    $el = $el.parentElement
+                
+                $el.outerHTML = `
+                    <div class="mermaid">${$el.textContent}</div>
+                    <details>
+                    <summary>Diagram source</summary>
+                    <pre>${$el.textContent}</pre>
+                    </details>
+                `
+
+            })
+
+
+        hljs.highlightAll();
+        //renderMermaid();
+
+        //}
+
+
+}
+
+    
+    function changetype(){
+        //change le type de question, donc adapte l'affichage en fonction
+        $("#ans").empty();
+        let obj = $("#typeEx")
+        if(obj.val() == "qcm"){
+            console.log("qcm");
+            plusRep();
+        }
+        else if(obj.val() == "num"){
+            console.log("num");
+            document.getElementById("newRep").style.display = "none";
+            plusRepNum();
+        }
+        else if(obj.val() == "str"){
+            console.log("str");
+            document.getElementById("newRep").style.display = "none";
+            plusRepStr();
+        }
+
+        else if(obj.val() == "open"){//questions ouvertes
+            console.log("open question");
+            document.getElementById("newRep").style.display = "none";
+            
+            //pas de champ de réponse
+        }
+
+
+    }
+
+    
+
+</script>
+
+
+
+</head>
+<body>
+
+<h1 id="TitrePage">Ajouter un exercice</h1>
+
+<h3>Type d'exercice</h3>
+
+
+<form action="/addexo" id="formulaire" method="post">
+    <select onchange="changetype()" id="typeEx" name="type">
+        <option value="qcm">QCM</option>
+        <option value="num">Numérique</option>
+        <option value="str">Chaine de caractères</option>
+        <option value="open">Question ouverte</option>
+    </select> 
+    <div id="champs" class="ChampsEtiquette">
+        <input type="hidden" name="modif" value="null"><!--la meme route est appelée par exo et modifExo donc ce champ permet de savoir lequel des deux a appelé la route -->
+        <input type="text" name="title" style="width: 500px;height: 30px;" placeholder="titre de l'exercice" required><br>
+        <textarea id="question" name="question" style="resize : none; width: 500px;height: 320px;" placeholder="consigne de l'exercice" onkeypress="prev();" required></textarea>
+        <h2>Aperçu:</h2>
+        <center><div id="preview" style="width: 500px;height: 300px;"></div></center>
+
+
+
+
+
+        <div id="ans">
+            
+        </div>
+        <input type="button" onclick="plusRep()" value="Nouvelle réponse" class="bouton" id="newRep">
+    
+        <!--ETIQUETTE-->
+        <h3>Etiquette(s):</h3>
+        <div id="divTag">
+            
+            
+
+    </div>
+        <!--/ETIQUETTE-->
+        <input type="button" onclick="plusTag()" value="Nouvelle étiquette" class="bouton">
+
+    </div>
+    <div class="ChampsEtiquette" style="background-color: #b8b7b7;">
+        <h3>Créer une étiquette</h3>
+        <input type="text" id="createTag" name="createTag" style="width: 500px;height: 30px; " placeholder="Etiquette">
+        <input type="button" onclick="newTag()" value="Enregistrer l'étiquette" >
+    </div>
+
+<center><input type="submit" name="valider" value="Enregistrer l'exercice" class="bouton"></center>
+
+</form>
+
+
+
+
+</body>
+</html>

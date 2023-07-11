@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>  
+<head>
+    <title>Gestionnaire d'exercice</title>
+    <link rel="stylesheet"  href="../static/hub.css">
+
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"> 
+    <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+    <script src="https://cdn.socket.io/4.4.1/socket.io.min.js" integrity="sha384-fKnu0iswBIqkjxrhQCTZ7qlLHOFEgNkRmK2vaO/LbTZSXdJfAu6ewRBdwHPhBo/H" crossorigin="anonymous"></script>
+
+    <script>
+        
+        var socket = io();
+
+
+    </script>
+
+</head>
+<body>
+    <header>
+        <h1>Bienvenue sur le gestionnaire d'exercices</h1>
+    </header>
+    
+    <div style="text-align: center;">
+        <form action="/exo">
+            <input type="submit" value="Créer un exercice" class="CreerTrier">
+        </form>
+    </div>
+
+    <div style="text-align: center;">
+        <form action="/addEtu">
+            <input type="submit" value="ajouter des étudiants" class="CreerTrier">
+        </form>
+    </div>
+
+    <div style="text-align: center;">
+        <form action="/createRoom">
+            <input type="submit" value="questions en direct" class="CreerTrier">
+        </form>
+        
+    </div>
+
+    
+    <!-- del seq -->
+    <div style="text-align: center;">
+        <form action="/listSeq">
+            <input type="submit" value="visualiser les séquences" class="CreerTrier">
+        </form>
+    </div>
+    <!-- del seq -->
+
+    <div style="text-align: center;">
+        <form action="/stat">
+            <input type="submit" value="statistiques des étudiants" class="CreerTrier">
+        </form>
+    </div>
+
+
+
+<!-- controle -->
+    <div style="text-align: center;">
+        <form action="/controle">
+            <input type="submit" value="Création de contrôle " class="CreerTrier">
+        </form>
+    </div>
+<!-- controle fin-->
+
+    <div id="div2">
+        <h3 style="text-align: center;">Cliquez sur un exercice pour le modifier ou le visualiser:</h3>
+        <form action="/hub" method="post">
+            <select name="etiquette" id="etiquette">
+                <option value="tout"></option>    <!-- valeur pour reset-->
+                {% for e in etiquette%}
+                <option value="{{e}}">{{e}}</option>   <!-- affiche les etiquettes presentent dans le tableau  etiquette-->
+                {% endfor %}
+            </select><br>
+            <input type="submit" value="trier" class="CreerTrier">
+        </form>
+        <ul style="list-style-type:disc">
+            {% for element in tab %}   <!-- pour chaques exercices -->  
+
+                {%if eti%} <!-- cas ou on veut trier   -->
+
+                    {% if eti=="tout" %}   <!-- cas ou l'on veut denouveau tout afficher aprés tri  -->
+
+                    <form action="/visu/{{ element['id'] }}">
+                        <li><input type="submit" value="{{ element['title'] }} par: {{element['username']}}" class="exo"></li>
+                    </form>
+                    
+                    {% else %}   <!-- affichage en fonction etiquette précise  -->
+                        {% for i in range(element['tag']|length) %}  <!-- on parcour tableau des tag de l'exercice   -->
+                    
+                        
+                        {% if (element['tag'][i].replace(" ",''))==eti %}     <!-- si tag voulu on affiche bouton pour rediriger vers /visu/<id>  -->
+                            <form action="/visu/{{ element['id'] }}">
+                                <li><input type="submit" value="{{ element['title'] }} par: {{element['username']}}" class="exo"></li>
+                            </form>
+                        {%endif%}
+                        {% endfor %}
+                    {% endif %}    
+                {%else%}  <!-- cas de base on affiche tout les exercices  -->
+                    <form action="/visu/{{ element['id'] }}">
+                        <li><input type="submit" value="{{ element['title'] }} par: {{element['username']}}" class="exo"></li>
+                    </form>
+                {%endif%}
+            {%endfor%}
+        </ul>
+    </div>
+    <div style="text-align: center;">
+        <form action="/logout">
+            <input type="submit" value="Se déconnecter" class="CreerTrier">
+        </form>
+    </div>
+
+    
+</body>
+</html>

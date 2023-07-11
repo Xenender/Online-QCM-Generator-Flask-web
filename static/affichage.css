@@ -1,0 +1,56 @@
+input[type="checkbox"]:checked+.toggler-slider .toggler-knob {
+    left: calc(100% - 19px - 3px);
+}
+header{
+    text-align: center;
+    border: none;
+    border-radius: 12px;
+    background-color: #45a049;
+}
+#content{
+    text-align: center;
+    border:2px solid;
+    border-radius: 12px;
+    background-color: rgb(206, 206, 206);
+}
+#li{
+    list-style-type:none;
+}
+input[type="checkbox"]{
+    text-align: center;
+    width: 20px;
+    height: 20px;
+}
+
+#juste{
+    text-align: center;
+    color: #45a049;
+  
+}
+
+#faux{
+    text-align: center;
+    color: red;
+}
+
+#reponses{
+    text-align: center;
+
+}
+
+#verifQCM{
+    background-color: #45a049;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    padding: 14px 20px;
+    cursor: pointer;
+}
+#verifNUM{
+    background-color: #45a049;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    padding: 14px 20px;
+    cursor: pointer;
+}

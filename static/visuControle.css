@@ -1,0 +1,11 @@
+#identite#retour{
+    visibility: hidden;
+}
+.reponses{
+    border-radius: 5px;
+    background-color: #d1d1d1;
+    padding: 20px;
+  }
+  .exam{
+    page-break-after: always;
+ }

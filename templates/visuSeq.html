@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Visualisation de la séquence {{seq['title']}}</title>
+    <style>
+        h1 {
+            text-align: center;
+            border: none;
+            border-radius: 12px;
+            background-color: #45a049;
+        }
+
+
+        #div2 {
+            border-radius: 5px;
+            background-color: #d1d1d1;
+            padding: 20px;
+        }
+        li{
+            width: 100%;
+            margin: 8px 0;
+            
+        }
+
+        .exo{
+            width: 100%;
+            padding: 14px 20px;
+        }
+
+        .CreerTrier{
+            background-color: #45a049;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+            padding: 14px 20px;
+            margin: 8px 0;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Visualisation de séquence</h1>
+    <h3 style="text-align: center;">Nom de la séquence: {{ seq['title'] }}</h3>
+    <div id="div2">
+        <h3 style="text-align: center;">Les questions de la séquence sont:</h3>
+        {% for elem in seq['question'] %} <!-- On balaye les id de question dans la séquence -->
+            
+            {% for element in tab %} <!-- On balaye la liste des exercices -->
+                {%if elem==element['id']%}  <!-- Test si l'exercice est dans la séquence -->
+                    <form action="/visu/{{ element['id'] }}">
+                        <li><input type="submit" value="{{ element['title'] }} par: {{element['username']}}" class="exo"></li>
+                    </form>
+                {%endif%}
+            {%endfor%}  
+        {%endfor%}
+    </div>
+    <form action="/seqDel/{{id}}">
+        <center><input type="submit" value="Supprimer la séquence" class="CreerTrier"></center>
+    </form>
+</body>
+</html>

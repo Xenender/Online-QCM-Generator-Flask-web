@@ -1,0 +1,27 @@
+body {
+    font-family: Arial, sans-serif;
+  }
+  #header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  h1 {
+    font-size: 24px;
+    margin-top: 0;
+  }
+  label {
+    font-weight: bold;
+  }
+  input[type="text"] {
+    width: 300px;
+    padding: 5px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+  }
+
+ .exam{
+    page-break-after: always;
+ }
+ #retour{
+  visibility:hidden;
+}

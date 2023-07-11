@@ -1,0 +1,23 @@
+<head>
+
+    <title>ajout d'étudiants</title>
+    <link rel="stylesheet" href="../static/ajoutEtu.css">
+
+</head>
+<body>
+    <header>
+        <h1>Déposer un fichier CSV avec les étudiants</h1>
+    </header>
+
+    <div id="div1">
+        <form action="/addEtudiant"  method="post" enctype="multipart/form-data">
+            <input type="file" id="fichier" name="fichier" accept=".csv" class="button" style="background-color: rgb(83, 88, 88);">
+            <input type="submit" id="envoie" name="envoie" value="envoyer" class="button">
+
+        </form>
+            <form action="/hub">
+                <input type="submit" value="retour" class="button">
+            </form>
+    </div>
+    
+</body>

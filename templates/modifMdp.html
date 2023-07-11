@@ -1,0 +1,51 @@
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js"></script>
+    <style>
+        h1{
+        text-align: center;
+        border: none;
+        border-radius: 12px;
+        background-color: #45a049;
+        }
+        div{
+        border-radius: 5px;
+        background-color: #d1d1d1;
+        padding: 20px;
+        }
+        .txtinput {
+        width: 100%;
+        padding: 12px 20px;
+        margin: 8px 0;
+        display: inline-block;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+        }
+    </style>
+
+</head>
+
+<body>
+    <h1>Changement de mot de passe</h1>
+    
+
+    <div id=modifMdp>
+        <form method="post" action="/modifMdp">
+        <label>Ancien mot de passe:</label><br>
+        <input type="password" id="old" name="old" class="txtinput">
+        <br>
+        <label>Nouveau mot de passe:</label><br>
+        <input type="password" id="new" name="new" class="txtinput">
+        <br>
+        {% if erreur %}
+
+            <p style="text-align: center;">Erreur dans votre ancien mot de passe</p>
+
+        {% endif %}
+        <input type="submit" id="modif" name="modif" value="Enregistrer les modifications" style="background-color: #48a397;border: none;border-radius: 4px;color: white;padding: 14px 20px;cursor: pointer;width: 100%;margin: 8px 0;">
+        </form>
+        
+    </div>
+
+
+</body>

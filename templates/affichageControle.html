@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Exercices à imprimer</title>
+    <link rel="stylesheet" href="../static/visuControle.css" type="text/css"/>
+    <link rel="stylesheet" href="../static/print.css" type="text/css" media="print"/>
+    <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@8.4.4/dist/mermaid.min.js"></script>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+</head>
+<body>
+    <div id="header">
+      {%for sujet in ListSujet%}
+   
+
+        <div class="exam">
+          {%if anonyme==False%}
+            <form id="identite">
+              <label for="name">Nom :</label>
+              <input type="text" id="name" name="name" required><br>
+              <label for="surname">Prénom :</label>
+              <input type="text" id="surname" name="surname" required><br>
+              <label for="student_number">Numéro étudiant :</label>
+              <input type="text" id="student_number" name="student_number" required><br>
+            </form>
+            <h3>Examen:</h3>
+          {%else%}
+            <h3>Grille d'encodage du numéro d'anonymat:</h3>
+            <center>
+            <table>
+              <thead>
+                <tr>
+                  <th></th>
+                  {%for i in range(10)%}
+                    <th>{{i}}</th>
+                  {%endfor%}
+                </tr>
+              </thead>
+              <tbody>
+                {%for i in range(6)%}
+                  <tr>
+                  <th></th>
+                  {%for i in range(10)%}
+                    <td><input type="checkbox" /></td>
+                  {%endfor%}
+                  </tr>
+                {%endfor%}
+              </tbody>
+            </table>
+          </center>
+          <h3>Examen:</h3>
+          {%endif%}
+
+          
+          {%for question in sujet%}
+            {%for q in tab%}
+              {%if question==q['id'] %}
+
+
+                <div id="content" class="question">
+                </div>
+
+                <script>
+                  hljs.initHighlightingOnLoad();  // initialisation de highlight 
+                  
+                  var myDivs = document.querySelectorAll("#content"); //on récupère toutes les div avec id content
+                  var divaModif = myDivs[myDivs.length-1];  // on récupèr la dernière
+
+                  var text='{{q["question"].replace("\n","espace")}}';  //on rempace les espaces de la question par "espace" afin d'éviter les problèmes lors de récup données jinja
+                  
+      
+                  var text=text.replaceAll("espace",'\n');  // on remplace maintenant les "espace" par \n pour que marked comprenne ou faire espaces
+                  
+                  var decodedText = $("<p/>").html(text).text();
+                  text= marked.parse(decodedText);
+                  
+                  
+                  
+              
+                  divaModif.innerHTML += text  //on ajoute la question a la dernière div content.
+                </script>
+
+
+
+                {% if q["type"]=="qcm"%}
+    
+                  <div class=reponses>
+                      <ul  style="list-style-type: none;">
+                          {% for r in q["answer"] %}  <!-- affiche les réponses possibles -->
+                          <li><input type="checkbox">  <!--  le nom des li correspond a la bonne reponse (1 si doit être coché 0 sinon)-->
+                          <label >{{r[0]}}</label></li>
+                          {% endfor %}
+                      </ul>
+                  </div>
+                {% elif q["type"]=="str"%}
+
+
+                  <div class=reponses>
+                      <input type="text" >
+                  </div>
+                {% else %}
+
+                  <div class=reponses>
+                      <input type="text">
+                  </div>
+                {% endif %}
+
+              {%endif%}
+            {%endfor%}
+          {%endfor%}
+        </div>
+    
+      {%endfor%}
+
+
+
+
+
+    </div>
+    <center>
+        <form action="/hub" id="retour" >
+            <input type="submit" value="Retour" class="CreerTrier">
+        </form>
+    </center>
+    
+</body>
+</html>

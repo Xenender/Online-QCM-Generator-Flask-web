@@ -1,0 +1,39 @@
+<head>
+
+    <link rel="stylesheet" href="../static/login.css">
+</head>
+
+<body>
+    <h1>Session étudiant</h1>
+
+    
+    <div id="div1">
+        <h3 style="text-align: center;">Entrez l'id de la salle pour vous connecter:</h3>
+        <form method="post" action="/rejoindre">
+            
+            <input type="text" name="idSalle" placeholder="id" class="txtinput"><br>
+            {% if pasLa==True %}
+        
+                <center><p>L'id saisie n'existe pas ou la salle est fermée</p></center>
+
+            {% endif %}
+            <input type="submit"  name="rejoindre"  value="Rejoindre" id="seconnecter">
+            
+        </form>
+    </div>
+    
+    
+
+    <center>
+        <br>
+        <form action="/modifMdp">
+            <input type="submit" value="Modifier le mot de passe" style="background-color: #48a397;border: none;border-radius: 4px;color: white;padding: 14px 20px;cursor: pointer;">
+        </form>
+        <br>
+        <form action="/logout">
+            <input type="submit" value="Se déconnecter" style="background-color: #45a049;border: none;border-radius: 4px;color: white;padding: 14px 20px;cursor: pointer;">
+        </form>
+    </center>
+
+
+</body>

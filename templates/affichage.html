@@ -1,0 +1,230 @@
+
+<html>
+    <head>
+        <title>affichage</title>
+        <link rel="stylesheet"  href="../static/affichage.css">
+        <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>    
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@8.4.4/dist/mermaid.min.js"></script>
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    </head>
+    <body>
+        <header>
+            <h1 id="titre">{{data["title"]}}</h1>   <!--  affichage du titre-->
+        </header>
+
+        <div id="content"></div>
+
+        <script>
+            hljs.initHighlightingOnLoad();  // initialisation de highlight 
+            
+            
+            var text='{{data["question"].replace("\n","espace")}}';  //on rempace les espaces de la question par "espace" afin d'éviter les problèmes lors de récup données jinja
+            console.log(text)
+            
+
+            var text=text.replaceAll("espace",'\n');  // on remplace maintenant les "espace" par \n pour que marked comprenne ou faire espaces
+            
+            var decodedText = $("<p/>").html(text).text();
+            console.log(decodedText);
+            text= marked.parse(decodedText);
+            
+            
+            
+        
+            document.getElementById('content').innerHTML +=text  //on ajoute la question a la div d'id content
+
+           
+            
+        </script>
+
+
+        
+        <div id="juste">  <!--  place pour afficher msg si reponse juste --></div>
+        <div id="faux"> <!--  place pour afficher msg si reponse fausse --></div>
+
+        
+        {% if data["type"]=="qcm"%}
+    
+        <div id=reponses>
+            <ul  >
+                {% for r in data["answer"] %}  <!-- affiche les réponses possibles -->
+                <li id="li"><input type="checkbox" id="chek" name='{{r[1]}}'>  <!--  le nom des li correspond a la bonne reponse (1 si doit être coché 0 sinon)-->
+                <label >{{r[0]}}</label></li>
+                {% endfor %}
+            </ul>
+            <input type="submit" id="verifQCM" name="verifQCM" value="Vérifier">
+        </div>
+
+        <script>
+
+            var inputQCM = document.getElementById("verifQCM");
+
+
+            inputQCM.addEventListener("click", function(event) {   //ajout d'un evenement lors du click sur imput vérifier
+               
+                var rep = document.getElementById("reponses");
+                var liste = rep.querySelectorAll("ul li");   // on récupère la liste contenues dans balise div reponses
+                var selected = [];    // tableau des réponses données
+                var juste=[];           // tableau des bonnes réponses
+            for (var i = 0; i < liste.length; i++) {
+                let checkbox = liste[i].querySelector("input[type='checkbox']");
+                if (checkbox.checked) {    // si checkbox est choisi on rajoute 1 dans selected et on met valeur de name dans juste
+                    selected.push(1);
+                    juste.push(parseInt(checkbox.name));  
+                    checkbox.checked=false;
+                }
+                else{
+                    selected.push(0);  // pas choisi donc 0 dans selected
+                    juste.push(parseInt(checkbox.name));
+                }
+            }
+
+            
+
+            
+            var pareil=true
+            for(var i = 0; i < selected.length; i++){  // vérification que juste et selected sont identiques
+                if(selected[i]!==juste[i]){
+                    pareil=false;
+                }   
+            }
+                
+            if(pareil){
+                document.getElementById("faux").innerHTML="";
+                document.getElementById("juste").innerHTML="Bonne réponse";
+            }
+            else{
+                
+                document.getElementById("juste").innerHTML="";
+                document.getElementById("faux").innerHTML="Mauvaise réponse";
+            }
+
+
+            });
+
+
+
+
+        </script>
+
+
+        {% elif data["type"]=="str"%}
+
+
+        <div id=reponses>
+            <input type="text" id="num" name="num" >
+            <input type="submit" id="verifNUM" name="verifNUM" value="Vérifier">
+        </div>
+
+
+        <script>
+
+        
+            var inputNUM = document.getElementById("verifNUM");
+
+            inputNUM.addEventListener("click",function(event){
+                var rep=document.getElementById("num").value;
+
+                var juste='{{data["answer"][0][0]}}'
+                console.log(juste);
+                console.log(rep);
+
+                if(juste){
+                    if(juste.toLowerCase()==rep.toLowerCase()){
+                    document.getElementById("faux").innerHTML="";
+                    document.getElementById("juste").innerHTML="Bonne réponse";
+                    }
+                    else{
+                        document.getElementById("juste").innerHTML="";
+                        document.getElementById("faux").innerHTML="Mauvaise réponse";
+                    }
+
+                }            
+                
+
+            })
+
+        </script>
+
+
+
+
+
+      
+        {% elif data["type"]=="num" %}
+
+
+        <div id=reponses>
+            <input type="number" id="num" name="num" step="0.01" pattern="\d+(\.\d{2})?">
+            <input type="submit" id="verifNUM" name="verifNUM" value="Vérifier">
+        </div>
+
+
+        <script>
+
+
+            const inputNumber = document.getElementById("num");
+            inputNumber.addEventListener("input", function() {
+                if (this.value.indexOf(".") >= 0) {
+                const [integer, decimal] = this.value.split(".");
+                if (decimal.length > 2) {
+                    this.value = `${integer}.${decimal.substring(0, 2)}`;
+                }
+                }
+            });
+
+
+
+
+        
+            var inputNUM = document.getElementById("verifNUM");
+
+            inputNUM.addEventListener("click",function(event){
+                var rep=document.getElementById("num").value;
+
+                var juste=parseFloat('{{data["answer"][0][0]}}')
+                console.log(juste);
+                console.log(rep);
+
+                if(juste){
+                    if(juste==rep){
+                    document.getElementById("faux").innerHTML="";
+                    document.getElementById("juste").innerHTML="Bonne réponse";
+                    }
+                    else{
+                        document.getElementById("juste").innerHTML="";
+                        document.getElementById("faux").innerHTML="Mauvaise réponse";
+                    }
+
+                }
+                
+
+            })
+
+        </script>
+
+
+        {% endif %}
+
+       
+        
+
+
+
+        {%if data["username"]==username %}   <!-- permet d'afficher les options de modif que si on est le créateur exo  -->
+            <form action="/visu/{{data['id']}}/modif">  <!--  bouton de modif -->
+            <input type="submit" name="modifier" value="Modifier" style="display: inline-block;">
+            </form>
+            <form action="/visu/{{data['id']}}/delete"> <!-- suppression   -->
+                <input type="submit" name="supprimer" value="Supprimer" style="display: inline-block;">
+                </form>
+        {% endif %}
+        
+        <form action="/hub" method="post">
+            <input type="submit" name="retour" value="Retour">   <!-- retour vers liste exo -->
+
+        </form>
+    </body>
+ </html>

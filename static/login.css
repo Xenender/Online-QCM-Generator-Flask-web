@@ -1,0 +1,40 @@
+#div1 {
+    border-radius: 5px;
+    background-color: #d1d1d1;
+    padding: 20px;
+}
+.txtinput {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+#seconnecter {
+  width: 100%;
+  margin: 8px 0;
+  
+}
+
+#seconnecter,#newcompt {
+  background-color: #45a049;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  padding: 14px 20px;
+  cursor: pointer;
+}
+
+.cree{
+    text-align: center;
+}
+
+h1{
+    text-align: center;
+    border: none;
+    border-radius: 12px;
+    background-color: #45a049;
+}

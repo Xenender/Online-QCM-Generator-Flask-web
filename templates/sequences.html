@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>sequences</title>
+    <link rel="stylesheet" href="../static/hub.css">
+    <script>
+        function changeCheck(id){
+            let checkbox = document.getElementById(id);
+            let cbValue = document.getElementById("val"+id)
+            if(checkbox.checked){ //checked apres avoir clické
+                cbValue.setAttribute('value', id);
+            }
+            else if(!checkbox.checked){
+                cbValue.setAttribute('value', 'null');
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Création de séquence</h1>
+
+    <form action='/addSequence' method="post">
+        <strong><label for="nameSeq">Entrez le nom de la séquence:</label><br></strong>
+        <input type="text" placeholder="nom" name="nameSeq">
+        
+   
+        <div id="div2">
+            <h3 style="text-align: center;">Cliquez sur un exercice pour l'ajouter à la sequence:</h3>
+            
+            <ul style="list-style-type:disc">
+                
+                {% for element in tab %}   <!-- pour chaques exercices -->  
+
+                    
+                    <!-- cas de base on affiche tout les exercices  -->
+                        
+                        <li><p>{{ element['title'] }} par: {{element['username']}}</p><input type="hidden" name="checkboxvalue" value="null" id="val{{ element['id'] }}"><input type="checkbox" id="{{ element['id'] }}" onclick="changeCheck(this.id);"></li>
+
+                        
+                {%endfor%}
+                
+                
+            </ul>
+        </div>
+        <center><input type="submit" value="Enregister" class="CreerTrier"></center>
+    </form>
+    
+</body>
+</html>

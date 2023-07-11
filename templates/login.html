@@ -1,0 +1,30 @@
+<html>
+    <head>
+        <title> Se connecter </title>
+        <link rel="stylesheet" href="../static/login.css">
+    </head>
+    <body>
+        <h1><center>Se connecter </center></h1>
+        <div id="div1">
+            <form action="/loginProf" method=post>
+                <label for="identifiant">Nom d'utilisateur:</label><br>
+                <input type="text" name="utilisateur" class="txtinput"> </input><br>
+                <label for="mdp">Mot de passe:</label><br>
+                <input type="password" name="mdp" class="txtinput"> </input><br>
+                <input type="reset" value="Effacer">        
+                <input type="submit" name="new" value="Se connecter" id="seconnecter"> </input>
+                
+            </form>
+        </div>
+        <h4 style="text-align: center;"> C'est ta première connexion ?</h4>
+
+        <div class="cree">
+            <form action="/newcompt">
+                <input type="submit" name="new" value="Créer un compte" id="newcompt"> </input>
+            </form>
+        </div>
+        {%if retour==0%}
+        <h3 style="text-align: center;">Nom d'utilisateur ou mot de passe incorrect !</h3>
+        {%endif%}
+    </body>
+</html>

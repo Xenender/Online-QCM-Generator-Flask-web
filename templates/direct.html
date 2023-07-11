@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+
+    <meta charset="UTF-8">
+    <title>questions en direct</title>
+    <link rel="stylesheet" href="../static/direct.css">
+
+
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"> 
+    <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>    
+    <script src="https://cdn.socket.io/4.4.1/socket.io.min.js" integrity="sha384-fKnu0iswBIqkjxrhQCTZ7qlLHOFEgNkRmK2vaO/LbTZSXdJfAu6ewRBdwHPhBo/H" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/holtzy/D3-graph-gallery@master/LIB/d3.layout.cloud.js"></script>
+    
+
+    <script>
+
+    //variables globales
+
+    var socket = io();
+
+    var LaQuestion; //question en cour
+
+    var tabBonneRep=[];   //bonnes réponses a la question en cours
+
+    var tabReponsesDonnes=[];  //réponses des étudiants a la question en cours (utile pour question num et str)
+
+    //d3
+    var words = [];
+    var width = 800;
+    var height = 500;
+
+    var tabExoInSeq=[];   
+    var nbExoinSeqRestant = 0;
+    var indiceExoinSeq = 0;
+
+
+    window.addEventListener('load', (event) => { 
+       
+        socket.emit("joinRoom",{idRoom:"{{idRoom}}"});
+
+        texteHostClient();
+
+        tellNewPlayer();
+
+    });
+
+    
+    function texteHostClient(){
+        "{%if username == host%}"
+        $("#changing").append("<p>Vous êtes l'hôte de la salle, diffusez le code de la salle et lancez lorsque tous les participants auront rejoints</p>");
+        $("#changing").append('<input type=button value="Commencer" onclick="start()">');
+        // $("#changing").append('<input type=button value="Question unique" onclick="uniqueQ">');
+        // $("#changing").append('<input type=button value="Séquence de questions" onclick="sequenceQ">');
+        "{%else%}"
+        $("#changing").append("<p>En attente de l'hôte...</p>");
+        "{%endif%}"
+    }
+
+
+
+
+
+    function actuJoueur(join){
+        $("#joined").empty();
+        for(let i=0;i<join.length;i++){
+            $("#joined").append("<p>"+join[i]+"</p>");
+        }
+
+    }
+
+
+    function tellNewPlayer(){
+        socket.emit("newPlayer","{{idRoom}}");
+    }
+
+
+    function sequenceQ(){
+        
+        //demande au serveur la liste des sequences
+        
+        
+        $("#changing").empty();
+        socket.emit("AskLstSequence","{{idRoom}}")
+        
+        
+
+    }
+
+
+    function Q(id){   // demande au serveur une question a partir de son id
+        socket.emit("Qid","{{idRoom}}",id);
+    }
+
+
+    //lancement de la question à partir d'un tableau contenant la question
+
+    function launchQ(tab){
+        tabReponsesDonnes=[]  
+        var text=tab[0]["question"]  // question 
+        var decodedText = $("<p/>").html(text).text();
+        text= marked.parse(decodedText);   //mise en forme de la question pour supporter le markdown et le code
+
+        // ajout de div pour organiser affichage
+
+        $("#changing").empty();
+        $("#changing").append('<div id="question"></div>');
+        $("#changing").append('<div id="content"></div>');
+        $("#changing").append('<div id="reponses"></div>')
+        $("#changing").append('<div id="envoyer"></div>')
+
+        $("#question").append('<h1>'+tab[0]["title"]+'</h1>' )
+        document.getElementById('content').innerHTML+=(text)
+
+        reponses=tab[0]["answer"].replace("[","").replace("]","").split(",")   //récupération de la ou des réponses possible (de base chaine de caractère qu'on traite)
+        tabRep=[]
+        for(rep of reponses){  // on récupére toutes les réponses qu'on donne ensuite a tabBonneRep
+            
+            tabRep.push(rep.replace("'"," ").replace("'"," ").trim().split("@"))
+        }
+        tabBonneRep=tabRep
+
+        "{%if username == host%}"  // cas Host
+        
+        
+        if(tab[0]["type"]=="qcm"){   // cas qcm, affichage de toutes les réponses possible dans une liste
+            $("#reponses").append("<ul id=listeRep></ul>")
+            for(rep of tabRep){
+            $("#listeRep").append('<li>'+rep[0]+': <label id='+rep[0] +'> 0 </label></li>')  //chaques lignes a pour id la valeur de la réponse et a de  base un lable de 0
+
+
+            }
+
+        }
+        else if(tab[0]["type"]=="num" || tab[0]["type"]=="str"){  //  cas  autre que qcm (num ou str) 
+            $("#reponses").append("<ul id=listeRep></ul>")  
+
+        }
+        else{ // question ouverte 
+
+            $("#reponses").append('<center><div id="word-cloud"></div></center>')  // div pour afficher nuage de mots
+
+        }
+
+
+        $("#envoyer").append('<input type=button value="Fin" onclick="fin()">')  // bouton pour host pour mettre fin a la question exécute fonction fin()
+
+
+        "{%else%}"  // cas étudiant 
+        
+        if(tab[0]["type"]=="qcm"){ // qcm affichage d'une liste de checkboxs pour chaques réponses possible
+            
+            $("#reponses").append("<ul id=listeRep></ul>")  
+            for(rep of tabRep){
+            $("#reponses").append('<li> <input type="checkbox" id=qcm ><label >'+rep[0] +'</label> </li>')
+        
+
+            }
+            $("#reponses").append('<input type=button id="verifQCM" name="verifQCM" value="envoyer" onclick="repQCM()">')   // bouton d'envoi des  réponses exécute repQCM()
+
+
+        }
+        else if(tab[0]["type"]=="num"){  // numérique 
+            $("#reponses").append('<input type="number" id="num" name="num" step="0.01" pattern="\d+(\.\d{2})?" onchange="limitNum()">') // input type number, onchnage=limitNum() pour limiter nombres aprés virgule
+            $("#reponses").append('<input type=button id="verifNUM" name="verifNUM" value="envoyer" onclick="repNUM()">') // bouton d'envoi des  réponses exécute repNUM()
+
+        }
+        else if(tab[0]["type"]=="str"){ // cas str
+            $("#reponses").append('<input type="text" id="str" name="str">') // input type text
+            $("#reponses").append('<input type=button id="verifSTR" name="verifSTR" value="envoyer" onclick="repSTR()">')// bouton d'envoi des  réponses exécute repSTR()
+
+        }
+
+        else{ //question ouverte
+            $("#reponses").append('<input type="text" id="repOuverte" name="repOuverte">') // input type text
+
+            $("#reponses").append('<input type=button id="open" name="open" value="envoyer" onclick="repOuverte()">')// bouton d'envoi des ouvertes exécute repOuverte()
+
+        }
+
+    
+
+
+        "{%endif%}"
+
+
+        hljs.highlightAll();  // pour mettre couleur au code
+
+    }
+
+    function limitNum(){  //limite a 2 nb apres virgules
+        let obj = document.getElementById("num");
+        obj.value = parseFloat(obj.value).toFixed(2);
+    
+    }
+
+
+    function repOuverte(){
+        value=$('#repOuverte').val()
+        socket.emit("repOuverte","{{idRoom}}",value);
+        $("#changing").empty();
+        $("#changing").append("<h1>réponse envoyé, en attente de l'host ...</h1>");
+    }
+
+
+    
+
+    function repQCM(){  //récupération des réponses données a QCM par étudiant
+
+        var rep = document.getElementById("reponses");
+        var liste = rep.querySelectorAll("li");
+        var selected = [];  
+
+        for (var i = 0; i < liste.length; i++) {
+
+            repQ=[]
+            let checkbox = liste[i].querySelector("input[type='checkbox']");
+            if (checkbox.checked) {    // si checkbox est choisi on rajoute 1 dans selected
+                repQ.push(tabBonneRep[i][0])
+
+                repQ.push(1)
+                selected.push(repQ);      // slected de la forme [[reponse,O si non choisit 1 sinon]]
+
+                
+            }
+            else{  // pas choisi donc 0 dans selected
+                repQ.push(tabBonneRep[i][0])
+                repQ.push(0)
+                selected.push(repQ);
+                
+            }
+
+
+        }
+
+        
+        socket.emit("repQCM","{{idRoom}}",selected,LaQuestion);  // envoie au serveur de la réponse données par l'étudiant (selected) et la question a laquelle il a répondu (utile pour statistiques) 
+        $("#changing").empty();
+        $("#changing").append("<h1>réponse envoyé, en attente de l'host ...</h1>");  // on affiche msg attente sur écran étudiant
+
+    }
+
+
+
+    function repNUM(){  //récupération des réponses données a question numérique par étudiant
+        value=$('#num').val()  // récupération de la valeur
+        socket.emit("rep","{{idRoom}}",value,LaQuestion);  // envoie au serveur avec la question 
+        $("#changing").empty();
+        $("#changing").append("<h1>réponse envoyé, en attente de l'host ...</h1>");
+
+
+    }
+
+    function repSTR(){   // même principe que repNUM()
+        value=$('#str').val()
+        
+        socket.emit("rep","{{idRoom}}",value,LaQuestion);
+        $("#changing").empty();
+        $("#changing").append("<h1>réponse envoyé, en attente de l'host ...</h1>");
+
+
+    }
+
+
+    // function choixRep(tab){
+
+    //     $("#changing").empty();
+    //     $("#changing").append('<p>Choisissez une réponse parmis celles-ci :</p>');
+    //     $("#changing").append("<ul id=listeChoix></ul>");
+
+    //     for(elem of tab){
+    //         $("#listeChoix").append('<li><input type=button value="'+elem+'" onclick="repChoisi('+elem+')"></li>')
+    //     }
+
+
+    // }
+
+    function repChoisi(rep){
+        socket.emit("actuRep",rep,"{{idRoom}}");
+        $("#changing").empty();
+        $("#changing").append("<h1>réponse envoyé, en attente de l'host ...</h1>");
+
+    }
+
+
+
+
+
+
+    function afficheResultQCM(selected){   // affichage des réponses des étudiant a QCM sur écran prof
+
+
+        "{%if username == host%}"
+                
+                for(elem of selected){   // pour chaques element du tableau selected des réponses de l'étudiant on actualise la valeur du label de la ligne de la liste correspondante
+                id="#"+elem[0]              // en ajoutant a celle ci la valeur (1 ou 0) correspondnate a si la question a été choisie ou non 
+                value=parseInt($(id).text())
+               
+                value+=elem[1]
+                
+                $(id).empty()
+                $(id).append(value)
+                }
+        "{%endif%}"
+
+    }
+
+    
+
+    function afficheResult(selected){  // affichage pour les questions num et str
+
+        "{%if username == host%}"
+
+        if(tabReponsesDonnes.flat().includes(selected)){  // cas ou tabReponsesDonnes contient  déjà la réponse de l'étudiant
+
+            nouvTab=[]
+
+            $('#listeRep').empty() // on vide les réponses déjà données pour la réactualiser 
+            for(elem of tabReponsesDonnes){  // pour chaques réponses déjà données 
+                if(elem[0]==selected){  // si réponse = a celle de etu on rajoute 1 au nombres  de fois qu'elle a été sélectionnées 
+                    nbSelections=parseInt(elem[1])
+                    nbSelections+=1
+                    repSelec=[selected,nbSelections]
+                    nouvTab.push(repSelec)
+                    console.log(nouvTab)
+                    $('#listeRep').append('<li>'+selected+': <label>'+ nbSelections +'</label> </li>') 
+                }
+                else{  // réponse non données par etu ajout normal sans modification
+                    nouvTab.push(elem)
+                    $('#listeRep').append('<li>'+elem[0]+': <label>'+elem[1]+'</label> </li>')  
+
+                }
+                
+
+            }
+            tabReponsesDonnes=nouvTab
+
+
+
+        }
+        else{  // cas ou tabReponsesDonnes ne contient pas  la réponse de l'étudiant
+
+
+            $('#listeRep').append('<li>'+selected+': <label> 1 </label> </li>') // ajout d'une nouvelle ligne a la liste de réponses données avec pour valeur la réponse de l'etu
+            tabReponsesDonnes.push([selected,1])
+
+        }
+
+        
+
+        "{%endif%}"
+
+
+
+    }
+
+
+    function afficheOuverte(value){
+
+        $('#word-cloud').empty()
+        
+        //recherche du mot donné par l'étudiant dans tableau words
+        console.log(words)
+        tab=[]
+        dedans=false
+        for(elem of words){
+            if(elem["text"]==value){
+                dic={text: elem["text"] ,size: elem["size"]+5}  // est présent donc on augmente sa taille
+                dedans=true
+                tab.push(dic)  
+            }
+            else{
+                tab.push(elem)  
+            }
+        
+        }
+
+        if(dedans==false){
+            dic={text: value ,size: 10}  // pas présent donc on le rajoute avec taille de base=10
+            tab.push(dic)
+        }
+
+        words=tab
+        //words=[{text: "javascript" ,size: 50},{text: "python" ,size: 70},{text: "java" ,size: 60},{text: "C" ,size: 20},{text: "php" ,size: 15},{text: "C++" ,size: 55}]
+
+
+        
+            // affichage du nuage de mots avec d3.js 
+
+            var svg = d3.select("#word-cloud")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+           
+
+            var layout = d3.layout.cloud()
+            .size([width, height])
+            .words(words)
+            .padding(40)
+            .rotate(function() { return ~~(Math.random() * 2) * 90; })  
+            .font("Impact")
+            .fontSize(function(d) { return d.size; })
+            .on("end", draw);
+
+            layout.start();
+
+            function draw(words) {
+            svg.append("g")
+                .attr("transform", "translate(" + layout.size()[0] / 2 + "," + layout.size()[1] / 2 + ")")
+                .selectAll("text")
+                .data(words)
+                .enter().append("text")
+                .style("font-size", function(d) { return d.size + "px"; })
+                .style("font-family", "Impact")
+                .style("fill", function(d, i) { return d3.schemeCategory10[i % 10]; })
+                .attr("text-anchor", "middle")
+                .attr("transform", function(d) {
+                return "translate(" + [d.x, d.y] + ")";  //rotate(" + d.rotate + ")
+                })
+                .text(function(d) { return d.text; });
+            
+            }
+
+
+    }
+
+
+
+    function fin(){  // fin de la question envoie msg de fin au serveur 
+        socket.emit("fin","{{idRoom}}");
+
+    }
+
+
+    function finQuestion(){  // affichage sur tout les écrans de la ou les bonnes réponses 
+        $("#changing").empty();
+        $("#changing").append("<h2>Bonne(s) réponse(s):</h2>")
+        $("#changing").append("<ul id=bonneRep></ul>");
+
+        for(rep of tabBonneRep){
+            if(rep[1]==1){
+                $("#bonneRep").append("<li>"+ rep[0]+"</li>");
+            }
+        }
+
+        "{%if username == host%}"
+        $("#changing2").empty();
+        if(nbExoinSeqRestant > 0){ //Si on est dans une sequence, bouton pour lancer la prochaine question
+            $("#changing2").append('<input type="button" onclick="nextQuestion()" value="Prochaine question">');
+        }
+        $("#changing2").append('<input type="button" onclick="deleteRoom()" value="Quitter">');  // bouton pour mettre fin a la salle 
+        "{%endif%}"
+       
+
+    }
+
+    function nextQuestion(){  // passage a la question suivante si séquence
+        $("#changing2").empty();
+        if(nbExoinSeqRestant > 0){
+            Q(tabExoInSeq[indiceExoinSeq]);
+            indiceExoinSeq = indiceExoinSeq + 1;
+            nbExoinSeqRestant = nbExoinSeqRestant - 1;
+        }
+    }
+
+    function deleteRoom(){ // fin de la room 
+        tabBonneRep=[];
+        tabReponsesDonnes=[];
+        tabExoInSeq=[];
+        nbExoinSeqRestant = 0;
+        indiceExoinSeq = 0;
+
+        socket.emit("deleteRoom","{{idRoom}}");
+
+    }
+
+
+
+
+    function uniqueQ(){  // demande au serveur question
+
+        "{%if username == host%}"
+        socket.emit("askQ","{{idRoom}}")
+        "{% endif %}"
+    }
+
+
+    function liQ(tab){ // si question unique, affichage pour host de toutes les questions pour qu'il choisisse laquelle faire
+        "{%if username == host%}"
+        $("#changing").empty();
+        $("#changing").append('<h2> Choisir une question </h2>');
+        $("#changing").append('<div id="questions> </div>');
+        for (const question of tab) {
+            $("#changing").append('<input type=button value="'+question["title"]+'" onclick="Q('+question["id"]+')">')
+        }
+        "{%endif%}"
+    }
+
+    function start(){
+        //on ne peut plus rejoindre la salle (envoie message au serveur que ça commence)
+        socket.emit("closeRoom","{{idRoom}}");
+
+        "{%if username == host%}"
+        $("#changing").empty();
+        $("#changing").append('<h2>La salle est complete, choisissez un mode de question:</h2>');
+        $("#changing").append('<input type=button value="Question unique" onclick="uniqueQ()">');
+        $("#changing").append('<input type=button value="Sequence de questions" onclick="sequenceQ()">');
+        "{%else%}"
+
+        "{% endif %}"
+
+        //le serveur répond, message groupé : "ça va commencer"
+
+        //deux nouveaux boutons : question unique et sequence de questions
+
+        //choix de la question ou de la sequence puis au moment ou c'est choisi: message de serveur qui
+        //va envoyer la question à tout le monde
+
+        //bouton fin de question
+
+        //si unique : FIN
+
+        //si sequence : bouton question suivante
+        
+    }
+
+    function chooseSeq(id){
+        //TODO
+        //emit au serveur avec l'id de la sequence, le serveur va afficher la première
+        socket.emit("askExoInSeq",id,"{{idRoom}}");
+
+        
+    }
+
+
+
+    function showSeq(lstSeq){ // si sequences de questions, affichage pour hoste de toutes les seqences pour qu'il en choisisse une
+        
+        $("#changing").append('<h2> Choisir une sequence </h2>');
+
+        $("#changing").append('<ul id="lstQ" style="list-style-type: none;">');
+        for(let i = 0;i<lstSeq.length;i++){
+            seq = '<input id="'+lstSeq[i][0]+'" type="button" onclick="chooseSeq(this.id)" value="'+lstSeq[i][1]+'">'
+            $("#changing").append('<li>'+seq+'</li>');
+        }
+        $("#changing").append('</ul>');
+        
+        
+    }
+
+
+  
+
+
+    //sockets
+
+
+
+
+    socket.on('listeQ' ,(tab) => { 
+        liQ(tab); // affichage de toutes les questions
+    } )
+
+    socket.on('actuNewPlayer', (joined) => { //get liste joueurs
+
+        actuJoueur(joined);
+
+    });
+
+    socket.on('afficheResultQCM', (selected) => {
+        afficheResultQCM(selected) 
+    });
+
+
+    socket.on('questionParId',(question) => {
+        LaQuestion=question
+        launchQ(question)  // lancement de la question
+    });
+
+    socket.on('finDeRep',()=>{
+        finQuestion()
+    });
+
+
+    socket.on('afficheResult',(selected) =>{
+        afficheResult(selected)
+    });
+
+
+    socket.on('askExoInSeqAnswer', (tabExo) => {
+
+        tabExoInSeq = tabExo;
+        nbExoinSeqRestant = tabExo.length;
+        indiceExoinSeq = 0;
+
+        if(nbExoinSeqRestant > 0){
+            Q(tabExo[indiceExoinSeq]);
+            indiceExoinSeq = indiceExoinSeq + 1;
+            nbExoinSeqRestant = nbExoinSeqRestant - 1;
+        }
+        
+        
+
+    });
+
+    socket.on('showSeq', (lstSeq) => {
+    
+    "{%if username == host%}"
+    showSeq(lstSeq);
+    "{%endif%}"
+
+});
+
+
+
+
+
+
+
+socket.on('retourOuverte',(value) => {
+    console.log(value[0])
+
+    $("#changing").empty();
+    $("#changing").append("<h1>réponse envoyé, en attente de l'host ...</h1>");
+    socket.emit("actuRep",value[0],"{{idRoom}}");
+    socket.emit("deleteNewRoom",value[1]);
+
+});
+
+
+socket.on('multiPos',(tab)=>{
+
+
+    $("#changing").empty();
+        $("#changing").append('<p>Choisissez une réponse parmis celles-ci :</p>');
+        $("#changing").append("<ul id=listeChoix></ul>");
+        console.log(tab[0])
+        for(elem of tab[0]){
+            $("#listeChoix").append('<li><input type=button value="'+elem+'" onclick="repChoisi('+"'"+elem+"'"+')"></li>')
+        }
+
+    socket.emit("deleteNewRoom",tab[1]);
+
+});
+
+socket.on('afficheRep', (rep) => {
+    afficheOuverte(rep)
+
+});
+
+
+
+
+
+
+
+
+
+socket.on('leaveRoom', () => { 
+socket.emit("leaveRoom","{{idRoom}}","{{username}}");
+
+});
+
+socket.on('leaveRoomRole', (data) => {
+socket.emit("deleteNewRoom",data[1]);
+
+//redirection vers la bonne page de hub
+
+if(data[0] == 0){//professeur
+   
+    window.location.replace("http://"+location.host+"/hub");
+           
+}
+else{//etudiant
+    
+    window.location.replace("http://"+location.host+"/hubEtu");
+}
+
+
+});
+
+    
+
+    </script>
+
+</head>
+<body>
+    
+    <h1>Questions en direct</h1>
+
+    <h3>id de la salle: {{idRoom}}</h3>
+
+    <div id="changing"></div>
+    <div id="changing2"></div>
+    <h4>Liste des participants: </h4>
+    <div id="joined">
+        
+    </div>
+
+</body>
+</html>

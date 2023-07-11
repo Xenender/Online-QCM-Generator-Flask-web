@@ -1,0 +1,23 @@
+<html>
+    <head>
+        <title> Nouveau compte </title>
+        <link rel="stylesheet" href="../static/new.css">
+    </head>
+    <body>
+        <h1><center>Créer un compte </center></h1>
+        <div>
+            <form action="/addcompt"method=post>
+                <label for="identifiant">Nom d'utilisateur</label><br>
+                <input type="text" name="utilisateur" class="txtinput" required> </input><br>
+                <label for="mdp">Mot de passe</label><br>
+                <input type="password" name="mdp" class="txtinput" required> </input><br>        
+                <input type="reset" value="Effacer">
+                <input type="submit" name="new" value="Créer le compte" id="cree"> </input>
+            </form>
+        </div>
+
+        {%if retour=="0"%}
+        <h3 style="text-align: center;">Le nom d'utilisateur existe déjà !</h3>
+        {%endif%}
+    </body>
+</html>
