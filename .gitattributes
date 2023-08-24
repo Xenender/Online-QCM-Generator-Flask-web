@@ -1,2 +1,3 @@
 venv/*.py linguist-detectable=false
 venv/*.py linguist-vendored=true
+venv/**/*.py linguist-vendored=true
